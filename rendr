@@ -1,0 +1,118 @@
+#!/usr/bin/env python
+
+import sys, re
+import json, urllib2, socket
+from optparse import OptionParser
+
+from tumblelog import Tumblelog
+import templater
+
+def parse_tumblr_json(stream):
+    '''
+    Load in the contents of a stream and get rid of the bad stuff (i.e. the 
+    Javascript variable assignment and end semicolon)
+    '''
+    contents = load_stream(stream)
+    
+    # Strip out 'var tumblr_api_read = ' at the start
+    # and ';\n' at the end
+    return json.loads(contents[22:-2])
+
+def load_stream(stream):
+    contents = u''
+    
+    while True:
+        chunk = stream.read()
+        contents = contents + chunk.decode('utf8')
+        
+        if chunk == '':
+            break
+    
+    return contents
+  
+def load_blog(url):
+    '''
+    Open the URL, load the JSON and instantiate a Tumbleblog object
+    '''
+    if not re.search('/api/read/json/?$', url):
+        if not re.search('/$', url):
+            url = url + '/'
+        url = url + 'api/read/json'
+    
+    stream = urllib2.urlopen(url)
+    tumblr = parse_tumblr_json(stream)    
+    blog = Tumblelog(tumblr)
+    return blog
+
+def save_blog(url, theme, output):
+    '''
+    Load the blog and theme, render it, and save the output.
+    '''
+    blog = load_blog(url)
+    with open(theme, 'r') as f:
+        template = load_stream(f)
+    result = templater.render(blog, template)
+    html = result.encode('utf8')
+    
+    with open(output, 'w') as out:
+        out.write(html)
+
+def serve_blog(url, theme, port):
+    '''
+    Load the blog and start a WSGI server. When a request is made, load the
+    theme and render it.
+    '''
+    from wsgiref.simple_server import make_server
+    
+    blog = load_blog(url)
+    
+    def application(environ, start_response):
+        from wsgiref.util import setup_testing_defaults
+        setup_testing_defaults(environ)
+
+        status = '200 OK'
+        headers = [('Content-type', 'text/html')]
+
+        start_response(status, headers)
+
+        with open(theme) as f:
+            template = load_stream(f)
+        result = templater.render(blog, template)
+        html = result.encode('utf8')
+        return html
+    
+    httpd = make_server('', port, application)
+    print "Listening on http://localhost:%d/" % port
+    httpd.serve_forever()    
+
+def main(args):
+    parser = OptionParser('%prog [options] {blog url} {theme file}')
+    parser.add_option('-o','--output-file', dest='output',
+        help='instead of starting a webserver, save output to a file')
+    parser.add_option('-p','--port', dest='port', type='int', default=88625,
+        help='port on which the server will listen')
+    
+    options, args = parser.parse_args(args)
+    
+    try:
+        url = args[0]
+    except IndexError:
+        parser.error('you must specify a valid Tumblr url')
+    
+    try:
+        theme = args[1]
+    except IndexError:
+        parser.error('you must specify a theme file')
+    
+    if options.output:
+        save_blog(url, theme, options.output)
+    else:
+        try:
+            serve_blog(url, theme, options.port)
+        except urllib2.HTTPError, e:
+            return 'Could not connect to server: %s' % e
+        except socket.error, e:
+            return 'Unable to open socket: %s' % e
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv[1:]))
