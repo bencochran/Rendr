@@ -33,6 +33,10 @@ def render(blog, template):
     template = render_posts(template)
     template = filter_block('SearchPage', False, template)
     template = filter_block('PostSummary', False, template)
+    template = filter_block('Description', blog.description, template)
+    template = filter_block('NextPage', False, template)
+    template = filter_block('PreviousPage', True, template)
+    
     template = template.replace('{Title}', blog.title)
     template = template.replace('{Description}', blog.description)
     
