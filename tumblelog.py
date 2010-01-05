@@ -240,12 +240,15 @@ class PhotoPost(TumblelogPost):
         
         template = filter_block('Caption', self.caption, template)
         template = filter_block('HighRes', self.has_highres(), template)
+        
         template = template.replace('{Caption}',self.caption)
         template = template.replace('{LinkOpenTag}', '<a href={LinkURL}>' if 
             self.link else '')
         template = template.replace('{LinkCloseTag}', '</a>' if 
             self.link else '')
         template = template.replace('{LinkURL}',self.link if self.link else '')
+        template = template.replace('{PhotoAlt}',
+            htmlspecialchars(self.caption))
         
         template = template.replace('{PhotoURL-500}', self.photo['500'])
         template = template.replace('{PhotoURL-400}', self.photo['400'])
