@@ -4,10 +4,12 @@ The Tumblr templater. Handles rendering a template for a Tumblelog object.
 
 from blocks import match_block, filter_block
 from tumblelog import post_is_type
+from htmltools import htmlspecialchars
+from timetools import sameday
 
 def render_single_post(post, template):
-    types = ['Text', 'Photo', 'Photoset', 'Quote', 'Link', 'Chat', 'Audio', 
-        'Video']
+    types = ['Regular', 'Text', 'Photo', 'Photoset', 'Quote', 'Link', 
+        'Conversation', 'Chat', 'Audio', 'Video']
     
     # Filter out the post block to only contain the relevant stuff
     for type in types:

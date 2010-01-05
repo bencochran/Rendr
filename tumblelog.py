@@ -266,6 +266,7 @@ class LinkPost(TumblelogPost):
 
         
 @post_type('conversation')
+@post_type('Conversation')
 @post_type('Chat')
 class ConversationPost(TumblelogPost):
     def __init__(self, data):
