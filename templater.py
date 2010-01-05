@@ -28,7 +28,14 @@ def render(blog, template):
     @match_block('Posts')
     def render_posts(template):
         content = u''
-        for post in blog.posts:
+        previousDay = None
+        for i, post in enumerate(blog.posts):
+            template = filter_block('NewDayDate',
+                not sameday(previousDay, post.time), template)
+            template = filter_block('SameDayDate',
+                sameday(previousDay, post.time), template)
+            template = filter_block('Odd', not i % 2, template)
+            template = filter_block('Even', i % 2, template)
             content = content + render_single_post(post, template)
         return content
 
