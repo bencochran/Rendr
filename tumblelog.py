@@ -2,10 +2,13 @@
 
 '''
 
-from datetime import datetime, timedelta
-from blocks import match_block, filter_block
-
+from datetime import datetime
+from time import mktime
 import re, random
+
+from blocks import match_block, filter_block
+from htmltools import htmlspecialchars
+from timetools import relative_time, GMT
 
 post_types = {}
 
@@ -49,6 +52,11 @@ class Tumblelog(object):
         self.title = data['tumblelog']['title']
         self.description = data['tumblelog']['description']
         
+        if data['tumblelog']['cname']:
+            self.url = 'http://%s' % data['tumblelog']['cname']
+        else:
+            self.url = 'http://%s.tumblr.com' % data['tumblelog']['name']
+        
         self.posts = []
         for post in data['posts']:
             self.posts.append(make_post(post))
@@ -74,6 +82,13 @@ class TumblelogPost(object):
         self.time = datetime.strptime(data['date-gmt'], '%Y-%m-%d %H:%M:%S %Z')
         self.format = data['format']
         self.tags = data['tags'] if data.has_key('tags') else []
+        
+        def sanitize_tag(tag):
+            return re.sub('\W', '_', tag)
+        
+        self.tagsAsClasses = " ".join(re.sub('\W', '_', tag)
+            for tag in self.tags)
+        
         self.notes = []
         for i in range(random.randint(0,10)):
             self.notes.append('hello')
@@ -86,63 +101,88 @@ class TumblelogPost(object):
     
     def __str__(self):
         return '%(__class__)s: #%(id)s %(url)s' % (self)
-
-    def relative_time(self, now=None):
-        '''
-        Give the relative time since the post's creation time. Will return 
-        something like '4 hours ago' or '1 week ago'
-
-        Adapted from: http://code.djangoproject.com/browser/django/trunk/django/utils/timesince.py
-        
-        '''
-        def singplural(singular, plural, c):
-            if c == 1: return singular
-            else: return plural
-        
-        chunks = (\
-            (60 * 60 * 24 * 365, lambda n: singplural('year', 'years', n)),\
-            (60 * 60 * 24 * 30, lambda n: singplural('month', 'months', n)),\
-            (60 * 60 * 24 * 7, lambda n : singplural('week', 'weeks', n)),\
-            (60 * 60 * 24, lambda n : singplural('day', 'days', n)),\
-            (60 * 60, lambda n: singplural('hour', 'hours', n)),\
-            (60, lambda n: singplural('minute', 'minutes', n))\
-        )
-        
-        if now and not isinstance(datetime.datetime):
-            now = datetime(now.year, now.month, now.day)    
-        if not now:
-            if self.time.tzinfo:
-                now = datetime.now(self.time.tzinfo)
-            else:
-                now = datetime.now()
     
-        delta = now - (self.time - timedelta(0, 0, self.time.microsecond))
-        since = delta.days * 24 * 60 * 60 + delta.seconds
-    
-        if since <= 0:
-            return u'0 minutes'
-    
-        for i, (seconds, name) in enumerate(chunks):
-            count = since // seconds
-            if count != 0:
-                break
-        s = '%(number)d %(type)s ago' % {'number': count, 'type':name(count)}
-        return s
-        
     def render(self, template):
         def singplural(singular, plural, c):
             if c == 1: return singular
             else: return plural
         
+        ignored_blocks = ['More']
+
+        ignored_tags = ['PostNotes', 'ReblogParentName', 'ReblogParentTitle',\
+            'ReblogParentURL', 'ReblogParentPortraitURL-16',\
+            'ReblogParentPortraitURL-24', 'ReblogParentPortraitURL-30',\
+            'ReblogParentPortraitURL-40', 'ReblogParentPortraitURL-48',\
+            'ReblogParentPortraitURL-64', 'ReblogParentPortraitURL-96',\
+            'ReblogParentPortraitURL-128', 'ReblogRootName',\
+            'ReblogRootTitle', 'ReblogRootURL', 'ReblogRootPortraitURL-16',\
+            'ReblogRootPortraitURL-24', 'ReblogRootPortraitURL-30',\
+            'ReblogRootPortraitURL-40', 'ReblogRootPortraitURL-48',\
+            'ReblogRootPortraitURL-64', 'ReblogRootPortraitURL-96',\
+            'ReblogRootPortraitURL-128'\
+        ]
+        
         template = filter_block('HasTags', len(self.tags) > 0, template)
         template = filter_block('NoteCount', len(self.notes) > 0, template)
+        
+        for block in ignored_blocks:
+            template = filter_block(block, False, template)
+        
+        for tag in ignored_tags:
+            template = template.replace('{%s}' % tag, '')
+        
                 
         template = template.replace('{Permalink}', self.url)
         template = template.replace('{PostID}', '%s' % self.id)
-        template = template.replace('{TimeAgo}', self.relative_time())
+        template = template.replace('{TimeAgo}', relative_time(self.time,
+            datetime.utcnow()))
+        template = template.replace('{DayOfMonth}', '%d' % self.time.day)
+        template = template.replace('{DayOfMonthWithZero}',
+            '%02d' % self.time.day)
+        template = template.replace('{DayOfWeek}', self.time.strftime('%A'))
+        template = template.replace('{ShortDayOfWeek}', 
+            self.time.strftime('%a'))
+            
+        template = template.replace('{DayOfWeekNumber}', 
+            '%s' % self.time.isoweekday())
+        
+        # http://mail.python.org/pipermail/python-list/2005-July/333218.html
+        template = template.replace('{DayOfMonthSuffix}', 
+            "th" if 4 <= self.time.day <= 20 or 24 <= self.time.day <= 30 \
+            else ["st", "nd", "rd"][self.time.day % 10 - 1])
+            
+        
+        template = template.replace('{DayOfYear}', 
+            self.time.strftime('%j').lstrip('0'))
+        template = template.replace('{WeekOfYear}', 
+            '%s' % (int(self.time.strftime('%U')) + 1))
+        
+        template = template.replace('{Month}', self.time.strftime('%B'))
+        template = template.replace('{ShortMonth}', self.time.strftime('%b'))
+        template = template.replace('{MonthNumber}', 
+            self.time.strftime('%m').lstrip('0'))
+        template = template.replace('{MonthNumberWithZero}', 
+            self.time.strftime('%m'))
+        template = template.replace('{Year}', self.time.strftime('%Y'))
+        template = template.replace('{ShortYear}', self.time.strftime('%y'))
+        template = template.replace('{AmPm}', self.time.strftime('%p').lower())
+        template = template.replace('{CapitalAmPm}', self.time.strftime('%p'))
+        template = template.replace('{12Hour}', 
+            self.time.strftime('%I').lstrip('0'))
+        template = template.replace('{24Hour}', 
+            self.time.strftime('%J').lstrip('0'))
+        template = template.replace('{12HourWithZero}', 
+            self.time.strftime('%I'))
+        template = template.replace('{24HourWithZero}', 
+            self.time.strftime('%J'))
+        template = template.replace('{Minutes}', self.time.strftime('%M'))
+        template = template.replace('{Seconds}', self.time.strftime('%S'))
+        template = template.replace('{Beats}', '')
+        template = template.replace('{Timestamp}', 
+            '%s' % mktime(self.time.timetuple()))
         template = template.replace('{NoteCountWithLabel}', '%d %s' %
             (len(self.notes), singplural('note', 'notes', len(self.notes))))
-        template = template.replace('{PostNotes}', '')
+        template = template.replace('{TagsAsClasses}', self.tagsAsClasses)
         
         @match_block('Tags')
         def render_tags(template):
