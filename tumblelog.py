@@ -352,6 +352,9 @@ class AudioPost(TumblelogPost):
         self.caption = data['audio-caption']
         self.player = data['audio-player']
         self.plays = int(data['audio-plays'])
+        self.audio_file = re.search('audio_file=([^&]+)', self.player).group(1)
+        self.is_external = not re.search('://www.tumblr.com/', self.audio_file)
+
 
     def player_color(self, color):
         return self.player.replace('color=FFFFFF', 'color=%s' % color)
@@ -363,7 +366,7 @@ class AudioPost(TumblelogPost):
         template = super(AudioPost, self).render(template)        
 
         template = filter_block('Caption', self.caption, template)
-        template = filter_block('ExternalAudio', False, template)
+        template = filter_block('ExternalAudio', self.is_external, template)
         template = template.replace('{Caption}', self.caption)
         template = template.replace('{AudioPlayer}', self.player)
         template = template.replace('{AudioPlayerWhite}',
@@ -375,7 +378,8 @@ class AudioPost(TumblelogPost):
         template = template.replace('{PlayCount}', '%s' % self.plays)
         template = template.replace('{FormattedPlayCount}', 
             self.formatted_plays())
-        template = template.replace('{ExternalAudioURL}', '#')
+        template = template.replace('{ExternalAudioURL}',
+            self.audio_file if self.is_external else '')
         
         return template
 
