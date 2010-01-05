@@ -314,6 +314,35 @@ class LinkPost(TumblelogPost):
 class ConversationPost(TumblelogPost):
     def __init__(self, data):
         super(ConversationPost, self).__init__(data)
+        self.title = data['conversation-title']
+        self.conversation = data['conversation'] \
+            if data.has_key('conversation') else []
+        
+    
+    def render(self, template):
+        template = super(LinkPost, self).render(template)        
+
+        template = filter_block('Title', self.title, template)
+
+        template = template.replace('{Title}', self.title)
+
+        @match_block('Lines')
+        def render_tags(template):
+            content = u''
+            for i, line in enumerate(self.line):
+                linemarkup = filter_block('Label', line['label'], template)
+                linemarkup = linemarkup.replace('{Label}', line['label'])
+                linemarkup = linemarkup.replace('{Name}', line['name'])
+                linemarkup = linemarkup.replace('{Line}', line['phrase'])
+                linemarkup = linemarkup.replace('{UserNumber}', '')
+                linemarkup = linemarkup.replace('{Alt}',
+                    'even' if i%2 else 'off')
+                content = content + linemarkup
+            return content
+        
+        template = render_tags(template)
+
+        return template
         
 @post_type('audio')
 @post_type('Audio')
