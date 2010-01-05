@@ -7,8 +7,8 @@ from time import mktime
 import re, random
 
 from blocks import match_block, filter_block
-from htmltools import htmlspecialchars
-from timetools import relative_time, GMT
+from htmltools import htmlspecialchars, urlsafe
+from timetools import relative_time
 
 post_types = {}
 
@@ -82,12 +82,8 @@ class TumblelogPost(object):
         self.time = datetime.strptime(data['date-gmt'], '%Y-%m-%d %H:%M:%S %Z')
         self.format = data['format']
         self.tags = data['tags'] if data.has_key('tags') else []
-        
-        def sanitize_tag(tag):
-            return re.sub('\W', '_', tag)
-        
-        self.tagsAsClasses = " ".join(re.sub('\W', '_', tag)
-            for tag in self.tags)
+                
+        self.tagsAsClasses = " ".join(urlsafe(tag) for tag in self.tags)
         
         self.notes = []
         for i in range(random.randint(0,10)):
@@ -119,7 +115,12 @@ class TumblelogPost(object):
             'ReblogRootPortraitURL-24', 'ReblogRootPortraitURL-30',\
             'ReblogRootPortraitURL-40', 'ReblogRootPortraitURL-48',\
             'ReblogRootPortraitURL-64', 'ReblogRootPortraitURL-96',\
-            'ReblogRootPortraitURL-128'\
+            'ReblogRootPortraitURL-128', 'PostAuthorName', 'PostAuthorTitle',\
+            'PostAuthorURL', 'PostAuthorPortraitURL-16',\
+            'PostAuthorPortraitURL-24', 'PostAuthorPortraitURL-30',\
+            'PostAuthorPortraitURL-40', 'PostAuthorPortraitURL-48',\
+            'PostAuthorPortraitURL-64', 'PostAuthorPortraitURL-96',\
+            'PostAuthorPortraitURL-128'
         ]
         
         template = filter_block('HasTags', len(self.tags) > 0, template)
@@ -180,6 +181,7 @@ class TumblelogPost(object):
         template = template.replace('{Beats}', '')
         template = template.replace('{Timestamp}', 
             '%s' % mktime(self.time.timetuple()))
+        template = template.replace('{NoteCount}', '%d' % len(self.notes))
         template = template.replace('{NoteCountWithLabel}', '%d %s' %
             (len(self.notes), singplural('note', 'notes', len(self.notes))))
         template = template.replace('{TagsAsClasses}', self.tagsAsClasses)
@@ -189,7 +191,11 @@ class TumblelogPost(object):
             content = u''
             for tag in self.tags:
                 tagmarkup = template.replace('{Tag}', tag)
-                tagmarkup = tagmarkup.replace('{TagURL}', '/tagged/%s' % tag)
+                tagmarkup = tagmarkup.replace('{URLSafeTag}', urlsafe(tag))
+                tagmarkup = tagmarkup.replace('{TagURL}',
+                    '/tagged/%s' % urlsafe(tag))
+                tagmarkup = tagmarkup.replace('{TagURLChrono}',
+                    '/tagged/%s/chrono' % urlsafe(tag))
                 content = content + tagmarkup
             return content
         
