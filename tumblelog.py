@@ -300,6 +300,7 @@ class LinkPost(TumblelogPost):
         template = super(LinkPost, self).render(template)        
 
         template = filter_block('Description', self.description, template)
+        
         template = template.replace('{URL}', self.link_url)
         template = template.replace('{Name}', self.text)
         template = template.replace('{Target}', 'target="_blank"')
@@ -392,3 +393,25 @@ class VideoPost(TumblelogPost):
         self.caption = data['video-caption']
         self.player = data['video-player']
         self.source = data['video-source']
+        self.width = int(re.search('width="(\d+)"', self.player).group(1))
+        self.height = int(re.search('height="(\d+)"', self.player).group(1))
+
+    def player_size(self, width):
+        if self.width == width:
+            return self.player
+        
+        height = int((self.height/float(self.width)) * width)
+        player = re.sub('width="\d+"', 'width="%d"' % width, self.player)
+        return re.sub('height="\d+"', 'height="%d"' % height, player)
+
+    def render(self, template):
+        template = super(VideoPost, self).render(template)
+        
+        template = filter_block('Caption', self.caption, template)
+        
+        template = template.replace('{Caption}', self.caption)
+        template = template.replace('{Video-500}', self.player_size(500))
+        template = template.replace('{Video-400}', self.player_size(400))
+        template = template.replace('{Video-250}', self.player_size(250))
+        
+        return template
