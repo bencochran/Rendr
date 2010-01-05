@@ -282,7 +282,7 @@ class QuotePost(TumblelogPost):
         template = filter_block('Source', self.source, template)
         template = template.replace('{Quote}',self.text)
         template = template.replace('{Source}',self.source)
-        # Length?
+        template = template.replace('{Length}','long')
         
         return template
 
