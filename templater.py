@@ -40,6 +40,10 @@ def render(blog, template):
             content = content + render_single_post(post, template)
         return content
 
+    # First, render posts.
+    template = render_posts(template)
+
+
     ignored_blocks = ['SearchPage', 'PostSummary', 'NextPage', \
         'PermalinkPage', 'PostTitle', 'PostSummary', 'PermalinkPagination', \
         'PreviousPost', 'NextPost', 'GroupMembers', 'GroupMember', 'DayPage', \
@@ -68,8 +72,6 @@ def render(blog, template):
     for tag in ignored_tags:
         template = template.replace('{%s}' % tag, '')
 
-
-    template = render_posts(template)
     template = filter_block('Description', blog.description, template)
     template = filter_block('PreviousPage', True, template)
     template = filter_block('IndexPage', True, template)
