@@ -45,8 +45,29 @@ def render(blog, template):
     template = filter_block('Description', blog.description, template)
     template = filter_block('NextPage', False, template)
     template = filter_block('PreviousPage', True, template)
+    template = filter_block('PermalinkPage', False, template)
+    template = filter_block('IndexPage', True, template)
+    template = filter_block('PostTitle', False, template)
+    template = filter_block('PostSummary', False, template)
+    template = filter_block('Pagination', True, template)
+    template = filter_block('PermalinkPagination', False, template)
+    template = filter_block('PreviousPost', False, template)
+    template = filter_block('NextPost', False, template)
     
     template = template.replace('{Title}', blog.title)
     template = template.replace('{Description}', blog.description)
-    
+    template = template.replace('{MetaDescription}',
+        htmlspecialchars(blog.description))
+    template = template.replace('{RSS}', '%s/rss' % blog.url)
+    template = template.replace('{PreviousPage}', '%s/page/2' % blog.url)
+    template = template.replace('{NextPage}', '')
+    template = template.replace('{CurrentPage}', '1')
+    template = template.replace('{TotalPages}', '15')
+    template = template.replace('{PostTitle}', '')
+    template = template.replace('{PostSummary}', '')
+    template = template.replace('{PreviousPost}', '')
+    template = template.replace('{NextPost}', '')
+    template = template.replace('{Favicon}', '')
+    template = template.replace('{CustomCSS}', '')
+
     return template
