@@ -7,5 +7,8 @@ def htmlspecialchars(string):
     return string.replace('&', '&amp;').replace('"', '&quot;')\
         .replace("'", '&#039;').replace('<', '&lt;').replace('>', '&gt;')
 
+def striptags(string):
+    return re.sub('<[^>]*>', '', string)
+
 def urlsafe(string):
     return re.sub('\W', '_', string)

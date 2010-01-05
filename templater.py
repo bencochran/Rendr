@@ -5,7 +5,7 @@ import re
 
 from blocks import match_block, filter_block
 from tumblelog import post_is_type
-from htmltools import htmlspecialchars
+from htmltools import htmlspecialchars, striptags
 from timetools import sameday
 
 def render_single_post(post, template):
@@ -77,8 +77,8 @@ def render(blog, template):
     
     template = template.replace('{Title}', blog.title)
     template = template.replace('{Description}', blog.description)
-    template = template.replace('{MetaDescription}',
-        htmlspecialchars(blog.description))
+    template = template.replace('{MetaDescription}', 
+        striptags(blog.description))
     template = template.replace('{RSS}', '%s/rss' % blog.url)
     template = template.replace('{PreviousPage}', '%s/page/2' % blog.url)
     template = template.replace('{CurrentPage}', '1')

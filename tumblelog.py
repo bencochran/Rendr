@@ -7,7 +7,7 @@ from time import mktime
 import re, random
 
 from blocks import match_block, filter_block
-from htmltools import htmlspecialchars, urlsafe
+from htmltools import htmlspecialchars, urlsafe, striptags
 from timetools import relative_time
 
 post_types = {}
@@ -253,8 +253,7 @@ class PhotoPost(TumblelogPost):
         template = template.replace('{LinkCloseTag}', '</a>' if 
             self.link else '')
         template = template.replace('{LinkURL}',self.link if self.link else '')
-        template = template.replace('{PhotoAlt}',
-            htmlspecialchars(self.caption))
+        template = template.replace('{PhotoAlt}', striptags(self.caption))
         
         template = template.replace('{PhotoURL-500}', self.photo['500'])
         template = template.replace('{PhotoURL-400}', self.photo['400'])
