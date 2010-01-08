@@ -326,7 +326,7 @@ class ConversationPost(TumblelogPost):
         
     
     def render(self, template):
-        template = super(LinkPost, self).render(template)        
+        template = super(ConversationPost, self).render(template)        
 
         template = filter_block('Title', self.title, template)
 
@@ -335,14 +335,14 @@ class ConversationPost(TumblelogPost):
         @match_block('Lines')
         def render_tags(template):
             content = u''
-            for i, line in enumerate(self.line):
+            for i, line in enumerate(self.conversation):
                 linemarkup = filter_block('Label', line['label'], template)
                 linemarkup = linemarkup.replace('{Label}', line['label'])
                 linemarkup = linemarkup.replace('{Name}', line['name'])
                 linemarkup = linemarkup.replace('{Line}', line['phrase'])
                 linemarkup = linemarkup.replace('{UserNumber}', '')
                 linemarkup = linemarkup.replace('{Alt}',
-                    'even' if i%2 else 'off')
+                    'even' if i%2 else 'odd')
                 content = content + linemarkup
             return content
         
