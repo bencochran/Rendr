@@ -44,11 +44,13 @@ def load_blog(url):
     blog = Tumblelog(tumblr)
     return blog
 
-def save_blog(url, theme, output):
+def save_blog(url, theme, output, **optional_args):
     '''
     Load the blog and theme, render it, and save the output.
     '''
     blog = load_blog(url)
+    blog.twitterUsername = optional_args.get('twitter', None)
+
     with open(theme, 'r') as f:
         template = load_stream(f)
     result = templater.render(blog, template)
@@ -57,7 +59,7 @@ def save_blog(url, theme, output):
     with open(output, 'w') as out:
         out.write(html)
 
-def serve_blog(url, theme, port):
+def serve_blog(url, theme, port, **optional_args):
     '''
     Load the blog and start a WSGI server. When a request is made, load the
     theme and render it.
@@ -65,6 +67,7 @@ def serve_blog(url, theme, port):
     from wsgiref.simple_server import make_server
     
     blog = load_blog(url)
+    blog.twitterUsername = optional_args.get('twitter', None)
     
     def application(environ, start_response):
         from wsgiref.util import setup_testing_defaults
@@ -89,6 +92,8 @@ def main(args):
     parser = OptionParser('%prog [options] {blog url} {theme file}')
     parser.add_option('-o','--output-file', dest='output',
         help='instead of starting a webserver, save output to a file')
+    parser.add_option('-t','--twitter', dest='twitter',
+        help='a twitter username to use when rendering the theme')
     parser.add_option('-p','--port', dest='port', type='int', default=88625,
         help='port on which the server will listen')
     
@@ -108,7 +113,7 @@ def main(args):
         save_blog(url, theme, options.output)
     else:
         try:
-            serve_blog(url, theme, options.port)
+            serve_blog(url, theme, options.port, twitter=options.twitter)
         except urllib2.HTTPError, e:
             return 'Could not connect to server: %s' % e
         except socket.error, e:

@@ -49,7 +49,7 @@ def render(blog, template):
         'PreviousPost', 'NextPost', 'GroupMembers', 'GroupMember', 'DayPage', \
         'DayPagination', 'PreviousDayPage', 'NextDayPage', 'TagPage', \
         'SearchPage', 'NoSearchResults', 'Following', 'Followed', 'Likes', \
-        'Twitter']
+        'PostNotes']
     
     ignored_tags = ['NextPage', 'PostTitle', 'PostSummary', 'PreviousPost', \
         'NextPage', 'Favicon', 'CustomCSS', 'GroupMemberName', \
@@ -64,7 +64,7 @@ def render(blog, template):
         'FollowedPortraitURL-20', 'FollowedPortraitURL-30', \
         'FollowedPortraitURL-40', 'FollowedPortraitURL-48', \
         'FollowedPortraitURL-64', 'FollowedPortraitURL-96', \
-        'FollowedPortraitURL-128', 'Likes', 'TwitterUserName']
+        'FollowedPortraitURL-128', 'Likes']
 
     for block in ignored_blocks:
         template = filter_block(block, False, template)
@@ -76,6 +76,9 @@ def render(blog, template):
     template = filter_block('PreviousPage', True, template)
     template = filter_block('IndexPage', True, template)
     template = filter_block('Pagination', True, template)
+    
+    template = filter_block('Twitter', blog.twitterUsername, template)
+    template = template.replace('{TwitterUsername}', blog.twitterUsername)
     
     template = template.replace('{Title}', blog.title)
     template = template.replace('{Description}', blog.description)

@@ -60,6 +60,8 @@ class Tumblelog(object):
         self.posts = []
         for post in data['posts']:
             self.posts.append(make_post(post))
+            
+        self.twitterUsername = None
 
     def __getitem__(self, key):
         try:
