@@ -420,3 +420,14 @@ class VideoPost(TumblelogPost):
         template = template.replace('{Video-250}', self.player_size(250))
         
         return template
+        
+@post_type('answer')
+@post_type('Answer')
+class AnswerPost(TumblelogPost):
+    def __init__(self, data):
+        super(AnswerPost, self).__init__(data)
+
+    def render(self, template):
+        template = super(AnswerPost, self).render(template)
+        
+        return template

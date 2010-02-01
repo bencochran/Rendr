@@ -10,7 +10,7 @@ from timetools import sameday
 
 def render_single_post(post, template):
     types = ['Regular', 'Text', 'Photo', 'Photoset', 'Quote', 'Link', 
-        'Conversation', 'Chat', 'Audio', 'Video']
+        'Conversation', 'Chat', 'Audio', 'Video', 'Answer']
     
     # Filter out the post block to only contain the relevant stuff
     for type in types:
