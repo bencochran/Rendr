@@ -33,6 +33,10 @@ def match_block(block):
             def call_function(match):
                 template = match.group(1)
                 return function(template)
-            return re.sub(r'(?s){block:%s}(.*?){/block:%s}' % (block, block), call_function, template)
+            # The optional / on the closing tag shouldn't be optional. But
+            # some theme designers seem to leave it out and Tumblr is happy
+            # to oblige. Since I'm trying to mimic Tumblr.. I'll also mimic
+            # their mistakes.
+            return re.sub(r'(?s){block:%s}(.*?){/?block:%s}' % (block, block), call_function, template)
         return wrap_function
     return wrap_matcher

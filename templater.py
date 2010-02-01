@@ -8,13 +8,67 @@ from tumblelog import post_is_type
 from htmltools import htmlspecialchars, striptags
 from timetools import sameday
 
+def load_meta_tags(template):
+    '''
+    Find custom meta tags and build up the proper tag and block information for
+    them. Returns a tuple of (tags, blocks) where 'tags' is a list of (name, 
+    value) tuples and 'blocks' is a list of (block_name, boolean) tuples.
+    '''
+    tags = []
+    blocks = []
+    
+    def findAttr(attr, tag):
+        '''
+        Given an HTML tag, find the value of an attribute.
+        '''
+        matches = re.search(r'(?s)%s\s*=\s*([\'"])(.*?)\1' % attr, tag)
+        return matches.group(2) if matches else None
+    
+    matches = re.finditer(r'(?s)<meta\b.*?>', template)
+    
+    for match in matches:
+        tag = match.group(0)
+
+        name = findAttr('name', tag)
+        content = findAttr('content', tag)
+
+        # Skip meta tags without a name
+        if not name: continue
+
+        # Convert to proper camel case
+        fullName = re.sub(r'\s+(\w)', lambda m: m.group(1).upper(), name)
+
+        try:
+            (nameType, name) = fullName.split(':')
+        except ValueError:
+            # Skip improperly formatted names
+            continue
+        
+        if nameType == 'if':
+            content = ('content' == '1')
+
+            blocks.append(('If%s' % name, content))
+            blocks.append(('IfNot%s' % name, not content))
+        else:
+            if nameType == 'image':
+                blockName = '%sImage' % name
+            else:
+                blockName = name
+            
+            # If it has content then the it's block is True
+            blockContent = True if content else False
+
+            blocks.append(('If%s' % blockName, blockContent))        
+            blocks.append(('IfNot%s' % blockName, not blockContent))        
+            tags.append((fullName, content))
+    return (tags, blocks)
+
 def render_single_post(post, template):
     types = ['Regular', 'Text', 'Photo', 'Photoset', 'Quote', 'Link', 
         'Conversation', 'Chat', 'Audio', 'Video', 'Answer']
     
     # Filter out the post block to only contain the relevant stuff
     for type in types:
-        # print type, post_is_type(post, type)
         template = filter_block(type, post_is_type(post, type), template)
 
     template = post.render(template)
@@ -39,6 +93,9 @@ def render(blog, template):
             template = filter_block('Even', i % 2, template)
             content = content + render_single_post(post, template)
         return content
+
+    # Load in all the custom stuff
+    (customTags, customBlocks) = load_meta_tags(template)
 
     # First, render posts.
     template = render_posts(template)
@@ -71,6 +128,12 @@ def render(blog, template):
     
     for tag in ignored_tags:
         template = template.replace('{%s}' % tag, '')
+
+    for (block, shouldFilter) in customBlocks:
+        template = filter_block(block, shouldFilter, template)
+
+    for (tag, value) in customTags:
+        template = template.replace('{%s}' % tag, value)
 
     template = filter_block('Description', blog.description, template)
     template = filter_block('PreviousPage', True, template)

@@ -16,7 +16,7 @@ def parse_tumblr_json(stream):
     
     # Strip out 'var tumblr_api_read = ' at the start
     # and ';\n' at the end
-    return json.loads(contents[22:-2])
+    return json.loads(contents[22:].strip(';\n'))
 
 def load_stream(stream):
     contents = u''
@@ -34,13 +34,18 @@ def load_blog(url):
     '''
     Open the URL, load the JSON and instantiate a Tumbleblog object
     '''
-    if not re.search('/api/read/json/?$', url):
-        if not re.search('/$', url):
-            url = url + '/'
-        url = url + 'api/read/json'
+    if re.search(r'^https?://', url):
+        if not re.search(r'/api/read/json/?$', url):
+            if not re.search(r'/$', url):
+                url = url + '/'
+            url = url + 'api/read/json'
     
-    stream = urllib2.urlopen(url)
-    tumblr = parse_tumblr_json(stream)    
+        stream = urllib2.urlopen(url)
+    else:
+        stream = open(url, 'r')
+
+    tumblr = parse_tumblr_json(stream)
+    stream.close()  
     blog = Tumblelog(tumblr)
     return blog
 
@@ -102,7 +107,8 @@ def main(args):
     try:
         url = args[0]
     except IndexError:
-        parser.error('you must specify a valid Tumblr url')
+        parser.error('you must specify a valid Tumblr url (or local file of '+
+            'JSON data)')
     
     try:
         theme = args[1]
@@ -115,7 +121,7 @@ def main(args):
         try:
             serve_blog(url, theme, options.port, twitter=options.twitter)
         except urllib2.HTTPError, e:
-            return 'Could not connect to server: %s' % e
+            return 'Could not connect to %s: %s' % (url, e)
         except socket.error, e:
             return 'Unable to open socket: %s' % e
 

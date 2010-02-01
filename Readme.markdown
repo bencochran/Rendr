@@ -40,7 +40,7 @@ more information than is currently provided by the API.
 * `{block:More}` isn't rendered
 
     Read More breaks aren't in the API feed. I think. I've never used the Read
-    More feed.
+    More feature.
 
 * Quote `{Length}` is fixed at 'long'
 
@@ -54,17 +54,12 @@ more information than is currently provided by the API.
 
 * Audio `{FormattedPlays}` currently simply returns the unformatted play count.
 
-* `{Beats}` in the time. Because, seriously.
+* `{Beats}` in the time isn't rendered. Because, seriously.
 
 * Note information isn't rendered
 
     The API provides no way to access notes for a post. To make designing
     easier, Rendr currently displays a random note count for each post.
-
-* All of the custom meta-tag-based tags aren't rendered, or even filtered out.
-
-    This could be added in the future, just requires parsing the theme more
-    robustly than I'm currently doing
 
 * Multiple Authors aren't rendered
 
@@ -171,10 +166,6 @@ more information than is currently provided by the API.
     * `{Likes limit="5"}`
     * `{Likes width="200"}`
     * `{Likes summarize="100"}`
-
-
-* Twitter integration isn't supported. `{block:Twitter}` and `{Twitter}` are
-  filtered out
 
 * `{CustomCSS}` isn't currently rendered
 
