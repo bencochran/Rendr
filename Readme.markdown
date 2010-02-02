@@ -9,10 +9,16 @@ a local webserver, serving up that blogs contents styled with your theme. When
 you reload the page the theme is reread, making it easy to view changes
 immediately.
 
+Rendr even supports [custom
+booleans](http://www.tumblr.com/docs/custom_themes#booleans),
+[color](http://www.tumblr.com/docs/custom_themes#custom-colors),
+[fonts](http://www.tumblr.com/docs/custom_themes#custom-fonts), etc. defined in
+meta tags (see those links for details).
+
 Use
 ---
 
-    $ rendr http://blog.petervidani.com theme.html
+    $ rendr http://blog.bencochran.com theme.html
 
 Then visit [http://localhost:88625/](http://localhost:88625/) in you browser to
 see the results.
