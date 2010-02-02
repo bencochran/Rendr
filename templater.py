@@ -141,7 +141,8 @@ def render(blog, template):
     template = filter_block('Pagination', True, template)
     
     template = filter_block('Twitter', blog.twitterUsername, template)
-    template = template.replace('{TwitterUsername}', blog.twitterUsername)
+    template = template.replace('{TwitterUsername}',
+        blog.twitterUsername if blog.twitterUsername else '')
     
     template = template.replace('{Title}', blog.title)
     template = template.replace('{Description}', blog.description)
