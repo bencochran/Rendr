@@ -84,6 +84,7 @@ def render(blog, template):
     def render_posts(template):
         content = u''
         previousDay = None
+        posts = blog.posts if not blog.singlePost else [blog.singlePost]
         for i, post in enumerate(blog.posts):
             template = filter_block('NewDayDate',
                 not sameday(previousDay, post.time), template)

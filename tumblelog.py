@@ -48,6 +48,21 @@ class Tumblelog(object):
     Basic tumblelog class. Takes a Tumblr-JSON-formatted dictionary of blog
     data and wraps it up into an object.  
     '''
+    def load_blog(self):
+        '''
+        Actually go to the server and grab the blog data.
+        '''
+        # the api url will be set in __init__()
+        pass
+    
+    def load_single_post(self, id):
+        '''
+        Check our loaded list of posts for the given post ID. If it's there, 
+        great, we'll use it. If not, go to the API and fetch the post and set
+        it as our post to render.
+        '''
+        pass
+    
     def __init__(self, data):
         self.title = data['tumblelog']['title']
         self.description = data['tumblelog']['description']
@@ -60,7 +75,9 @@ class Tumblelog(object):
         self.posts = []
         for post in data['posts']:
             self.posts.append(make_post(post))
-            
+        
+        self.singlePost = None
+        
         self.twitterUsername = None
 
     def __getitem__(self, key):

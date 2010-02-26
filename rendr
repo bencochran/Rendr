@@ -83,6 +83,18 @@ def serve_blog(url, theme, port, **optional_args):
 
         start_response(status, headers)
 
+        path = environ['PATH_INFO']
+        
+        pathParts = path.split('/')[1:]
+        print pathParts
+        if len(pathParts) == 0 or (len(pathParts) == 1 and pathParts[0] == ''):
+            blog.singlePost = None
+        elif len(pathParts) > 2 and pathParts[0] == 'post':
+            blog.singlePost = pathParts[1]
+            print 'single post:', pathParts[1]
+        else:
+            blog.has404 = True
+
         with open(theme) as f:
             template = load_stream(f)
         result = templater.render(blog, template)
