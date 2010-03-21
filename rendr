@@ -115,6 +115,12 @@ def main(args):
     except IndexError:
         parser.error('you must specify a theme file')
     
+    try:
+        with open(theme) as f:
+            pass
+    except IOError:
+        parser.error('invalid theme file, "%s" could not be found' % theme)
+    
     if options.output:
         save_blog(url, theme, options.output)
     else:
