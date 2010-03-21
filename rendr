@@ -130,6 +130,9 @@ def main(args):
             return 'Could not connect to %s: %s' % (url, e)
         except socket.error, e:
             return 'Unable to open socket: %s' % e
+        except KeyboardInterrupt, e:
+            print 'Goodbye'
+            return 0
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv[1:]))
