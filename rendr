@@ -6,6 +6,7 @@ from optparse import OptionParser
 
 from tumblelog import Tumblelog
 import templater
+from tools import load_stream
 
 def parse_tumblr_json(stream):
     '''
@@ -18,18 +19,6 @@ def parse_tumblr_json(stream):
     # and ';\n' at the end
     return json.loads(contents[22:].strip(';\n'))
 
-def load_stream(stream):
-    contents = u''
-    
-    while True:
-        chunk = stream.read()
-        contents = contents + chunk.decode('utf8')
-        
-        if chunk == '':
-            break
-    
-    return contents
-  
 def load_blog(url):
     '''
     Open the URL, load the JSON and instantiate a Tumbleblog object

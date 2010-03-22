@@ -8,7 +8,7 @@ import re, random
 
 from blocks import match_block, filter_block
 from htmltools import htmlspecialchars, urlsafe, striptags
-from timetools import relative_time
+from tools import relative_time, load_stream
 
 post_types = {}
 

@@ -1,5 +1,22 @@
 from datetime import datetime, timedelta, tzinfo
 
+def load_stream(stream):
+    '''
+    Given a stream (like a file or open url), read contents to the end and
+    return them. Warning: only use this if you know your stream has an end or
+    if you like programs that do nothing for a while. Like until you kill them.
+    '''
+    contents = u''
+    
+    while True:
+        chunk = stream.read()
+        contents = contents + chunk.decode('utf8')
+        
+        if chunk == '':
+            break
+    
+    return contents
+
 def relative_time(d, now=None):
     '''
     Give the relative time since the post's creation time. Will return 

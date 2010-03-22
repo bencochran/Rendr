@@ -6,7 +6,7 @@ import re
 from blocks import match_block, filter_block
 from tumblelog import post_is_type
 from htmltools import htmlspecialchars, striptags
-from timetools import sameday
+from tools import sameday
 
 def load_meta_tags(template):
     '''
